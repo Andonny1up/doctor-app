@@ -4,7 +4,7 @@ from .serializers import PatientSerializer, Patient
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import get_object_or_404, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
 # Create your views here.
@@ -15,60 +15,18 @@ from rest_framework.views import APIView
 # DELETE /api/patients/<pk> => Borrar
 
 
-
-@api_view(("GET","POST"))
-def list_patients(request):
-    if request.method == 'GET':
-        patients = Patient.objects.all()
-        serializer = PatientSerializer(patients,many=True)
-
-        return Response(serializer.data)
-    
-    if request.method == 'POST':
-        serializer = PatientSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
-
-class ListPatientView(APIView):
+class ListPatientView(ListCreateAPIView):
     allowed_methods = ['GET','POST']
-
-    def get(self, request):
-        patients = Patient.objects.all()
-        serializer = PatientSerializer(patients, many=True)
-        return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = PatientSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+    serializer_class = PatientSerializer
+    queryset = Patient.objects.all()
 
 
-class DetailPatientView(APIView):
+class DetailPatientView(RetrieveUpdateDestroyAPIView):
     allowed_methods = ['GET','PUT','DELETE']
+    serializer_class = PatientSerializer
+    queryset = Patient.objects.all()
 
-    def get(self, request, pk):
-        patient = get_object_or_404(Patient,id=pk)
-        serializer = PatientSerializer(patient)
-        return Response(serializer.data)
     
-    def put(self, request, pk):
-        patient = get_object_or_404(Patient,id=pk)
-        serializer = PatientSerializer(patient,data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        updated = {
-            "message": "Patient updated successfully",
-            "data": serializer.data
-        }
-
-        return Response(updated,status=status.HTTP_200_OK)
-
-    def delete(self,request,pk):
-        patient = get_object_or_404(Patient,id=pk)
-        patient.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
     
 
 @api_view(['GET','PUT','DELETE'])
